@@ -1,0 +1,2621 @@
+%!PS-Adobe-3.0
+%%Title: Apermutacion.cpp, njob_nworker.cpp, prueba_APermutacion.cpp, Apermutacion.h, matriz_vector.h
+%%For: rosa
+%%Creator: a2ps version 4.14
+%%CreationDate: Wed May 13 09:18:36 2015
+%%BoundingBox: 24 24 571 818
+%%DocumentData: Clean7Bit
+%%Orientation: Landscape
+%%Pages: 9
+%%PageOrder: Ascend
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: font Courier
+%%+ font Courier-Bold
+%%+ font Courier-BoldOblique
+%%+ font Courier-Oblique
+%%+ font Helvetica
+%%+ font Helvetica-Bold
+%%+ font Symbol
+%%+ font Times-Bold
+%%+ font Times-Roman
+%%DocumentProcessColors: Black 
+%%DocumentSuppliedResources: procset a2ps-a2ps-hdr
+%%+ procset a2ps-black+white-Prolog
+%%+ encoding ISO-8859-1Encoding
+%%EndComments
+/a2psdict 200 dict def
+a2psdict begin
+%%BeginProlog
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+
+% EPSF import as in the Red Book
+/BeginInclude {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack 
+  userdict begin
+    0 setgray 0 setlinecap
+    1 setlinewidth 0 setlinejoin
+    10 setmiterlimit [ ] 0 setdash newpath
+    gs_languagelevel 1 ne {
+      false setstrokeadjust false setoverprint 
+    } if
+} bind def
+
+/EndInclude {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+/BeginEPSF {
+  BeginInclude
+  /showpage { } def
+} bind def
+
+/EndEPSF {
+  EndInclude
+} bind def
+
+% Page prefeed
+/page_prefeed {         % bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} bind def
+
+/deffont {
+  findfont exch scalefont def
+} bind def
+
+/reencode_font {
+  findfont reencode 2 copy definefont pop def
+} bind def
+
+% Function c-show (str => -)
+% centers text only according to x axis.
+/c-show { 
+  dup stringwidth pop
+  2 div neg 0 rmoveto
+  show
+} bind def
+
+% Function l-show (str => -)
+% prints texts so that it ends at currentpoint
+/l-show {
+  dup stringwidth pop neg 
+  0 
+  rmoveto show
+} bind def
+
+% center-fit show (str w => -)
+% show centered, and scale currentfont so that the width is less than w
+/cfshow {
+  exch dup stringwidth pop
+  % If the title is too big, try to make it smaller
+  3 2 roll 2 copy
+  gt
+  { % if, i.e. too big
+    exch div
+    currentfont exch scalefont setfont
+  } { % ifelse
+    pop pop 
+  }
+  ifelse
+  c-show			% center title
+} bind def
+
+% Return the y size of the current font
+% - => fontsize
+/currentfontsize {
+  currentfont /FontType get 0 eq {
+    currentfont /FontMatrix get 3 get
+  }{
+    currentfont /FontMatrix get 3 get 1000 mul
+  } ifelse
+} bind def
+
+% reencode the font
+% <encoding-vector> <fontdict> -> <newfontdict>
+/reencode { %def
+  dup length 5 add dict begin
+    { %forall
+      % <vector> <key> <val>
+      1 index /FID ne 
+      { def }{ pop pop } ifelse
+    } forall
+    /Encoding exch def % -
+
+    % Use the font's bounding box to determine the ascent, descent,
+    % and overall height; don't forget that these values have to be
+    % transformed using the font's matrix.
+    % We use `load' because sometimes BBox is executable, sometimes not.
+    % Since we need 4 numbers an not an array avoid BBox from being executed
+    /FontBBox load aload pop
+    FontMatrix transform /Ascent exch def pop
+    FontMatrix transform /Descent exch def pop
+    /FontHeight Ascent Descent sub def
+
+    % Get the underline position and thickness if they're defined.
+    % Use 1 if they are not defined.
+    currentdict /FontInfo 2 copy known
+    { get
+      /UnderlinePosition 2 copy % <FontInfo> /UP <FontInfo> /UP
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+
+      /UnderlineThickness 2 copy % <FontInfo> /UT <FontInfo> /UT
+      2 copy known
+      { get }{ pop pop 1 } ifelse
+      0 exch FontMatrix transform exch pop
+      def % <FontInfo>
+      pop % -
+    }{ pop pop
+    } ifelse
+
+    currentdict
+  end 
+} bind def
+
+% composite fonts for ASCII-EUC mixed strings
+% Version 1.2 1/31/1990
+% Original Ken'ichi HANDA (handa@etl.go.jp)
+% Modified Norio Katayama (katayama@rd.nacsis.ac.jp),1998
+% Extend & Fix Koji Nakamaru (maru@on.cs.keio.ac.jp), 1999
+% Anyone can freely copy, modify, distribute this program.
+
+/copyfont {	% font-dic extra-entry-count  copyfont  font-dic
+	1 index maxlength add dict begin
+	{	1 index /FID ne 2 index /UniqueID ne and
+		{def} {pop pop} ifelse
+	} forall
+	currentdict
+	end
+} bind def
+
+/compositefont { % ASCIIFontName EUCFontName RomanScale RomanOffset Rot(T/F) compositefont font
+    /RomanRotation exch def
+    /RomanOffset exch def
+    /RomanScale exch def
+    userdict /fixeucfont_dict known not {
+	userdict begin
+	    /fixeucfont_dict 2 dict begin
+		/UpperByteEncoding [
+		    16#00 1 16#20 { pop 0 } for
+		    16#21 1 16#28 { 16#20 sub } for
+		    16#29 1 16#2F { pop 0 } for
+		    16#30 1 16#74 { 16#27 sub } for
+		    16#75 1 16#FF { pop 0 } for
+		] def
+	        /LowerByteEncoding [
+		    16#00 1 16#A0 { pop /.notdef } for
+		    16#A1 1 16#FE { 16#80 sub 16 2 string cvrs
+				    (cXX) dup 1 4 -1 roll
+				    putinterval cvn } for
+		    /.notdef
+		] def
+		currentdict
+	    end def
+	end
+    } if
+    findfont dup /FontType get 0 eq {
+	14 dict begin
+	    %
+	    % 7+8 bit EUC font
+	    %
+	    12 dict begin
+		/EUCFont exch def
+		/FontInfo (7+8 bit EUC font) readonly def
+		/PaintType 0 def
+		/FontType 0 def
+		/FontMatrix matrix def
+		% /FontName
+		/Encoding fixeucfont_dict /UpperByteEncoding get def
+		/FMapType 2 def
+		EUCFont /WMode known
+		{ EUCFont /WMode get /WMode exch def }
+		{ /WMode 0 def } ifelse
+		/FDepVector [
+		    EUCFont /FDepVector get 0 get
+		    [ 16#21 1 16#28 {} for 16#30 1 16#74 {} for ]
+		    {
+			13 dict begin
+			    /EUCFont EUCFont def
+			    /UpperByte exch 16#80 add def	
+			    % /FontName
+			    /FontInfo (EUC lower byte font) readonly def
+			    /PaintType 0 def
+			    /FontType 3 def
+			    /FontMatrix matrix def
+			    /FontBBox {0 0 0 0} def
+			    /Encoding
+				fixeucfont_dict /LowerByteEncoding get def
+			    % /UniqueID
+			    % /WMode
+			    /BuildChar {
+				gsave
+				exch dup /EUCFont get setfont
+				/UpperByte get
+				2 string
+				dup 0 4 -1 roll put
+				dup 1 4 -1 roll put
+				dup stringwidth setcharwidth
+				0 0 moveto show
+				grestore
+			    } bind def
+			    currentdict
+			end
+			/lowerbytefont exch definefont
+		    } forall
+		] def
+		currentdict
+	    end
+	    /eucfont exch definefont
+	    exch
+	    findfont 1 copyfont dup begin
+		RomanRotation {
+			/FontMatrix FontMatrix
+			[ 0 RomanScale neg RomanScale 0 RomanOffset neg 0 ]
+			matrix concatmatrix def
+		}{
+			/FontMatrix FontMatrix
+			[ RomanScale 0 0 RomanScale 0 RomanOffset ] matrix concatmatrix
+			def
+			/CDevProc
+			    {pop pop pop pop 0 exch -1000 exch 2 div 880} def
+		} ifelse
+	    end
+	    /asciifont exch definefont
+	    exch
+	    /FDepVector [ 4 2 roll ] def
+	    /FontType 0 def
+	    /WMode 0 def
+	    /FMapType 4 def
+	    /FontMatrix matrix def
+	    /Encoding [0 1] def
+	    /FontBBox {0 0 0 0} def
+%	    /FontHeight 1.0 def % XXXX
+	    /FontHeight RomanScale 1.0 ge { RomanScale }{ 1.0 } ifelse def
+	    /Descent -0.3 def   % XXXX
+	    currentdict
+	end
+	/tmpfont exch definefont
+	pop
+	/tmpfont findfont
+    }{
+	pop findfont 0 copyfont
+    } ifelse
+} def	
+
+/slantfont {	% FontName slant-degree  slantfont  font'
+    exch findfont 1 copyfont begin
+    [ 1 0 4 -1 roll 1 0 0 ] FontMatrix exch matrix concatmatrix
+    /FontMatrix exch def
+    currentdict
+    end
+} def
+
+% Function print line number (<string> # -)
+/# {
+  gsave
+    sx cw mul neg 2 div 0 rmoveto
+    f# setfont
+    c-show
+  grestore
+} bind def
+
+% -------- Some routines to enlight plain b/w printings ---------
+
+% Underline
+% width --
+/dounderline {
+  currentpoint
+  gsave
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    0 rlineto
+    stroke
+  grestore
+} bind def
+
+% Underline a string
+% string --
+/dounderlinestring {
+  stringwidth pop
+  dounderline
+} bind def
+
+/UL {
+  /ul exch store
+} bind def
+
+% Draw a box of WIDTH wrt current font
+% width --
+/dobox {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    stroke
+  grestore
+} bind def
+
+/BX {
+  /bx exch store
+} bind def
+
+% Box a string
+% string --
+/doboxstring {
+  stringwidth pop
+  dobox
+} bind def
+
+%
+% ------------- Color routines ---------------
+%
+/FG /setrgbcolor load def
+
+% Draw the background
+% width --
+/dobackground {
+  currentpoint
+  gsave
+    newpath
+    moveto
+    0 currentfont /Descent get currentfontsize mul rmoveto
+    dup 0 rlineto
+    0 currentfont /FontHeight get currentfontsize mul rlineto
+    neg 0 rlineto
+    closepath
+    bgcolor aload pop setrgbcolor
+    fill
+  grestore
+} bind def
+
+% Draw bg for a string
+% string --
+/dobackgroundstring {
+  stringwidth pop
+  dobackground
+} bind def
+
+
+/BG {
+  dup /bg exch store
+  { mark 4 1 roll ] /bgcolor exch store } if
+} bind def
+
+
+/Show {
+  bg { dup dobackgroundstring } if
+  ul { dup dounderlinestring } if
+  bx { dup doboxstring } if
+  show
+} bind def
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T {
+  cw mul x0 add
+  bg { dup currentpoint pop sub dobackground } if
+  ul { dup currentpoint pop sub dounderline } if
+  bx { dup currentpoint pop sub dobox } if
+  y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n {
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+/S {
+  Show
+} bind def
+
+%%BeginResource: procset a2ps-a2ps-hdr 2.0 2
+%%Copyright: (c) 1988, 89, 90, 91, 92, 93 Miguel Santana
+%%Copyright: (c) 1995, 96, 97, 98 Akim Demaille, Miguel Santana
+% Function title: prints page header.
+% <ct> <rt> <lt> are passed as argument
+/title { 
+  % 1. Draw the background
+  x v get y v get moveto
+  gsave
+    0 th 2 div neg rmoveto 
+    th setlinewidth
+    0.95 setgray
+    pw 0 rlineto stroke
+  grestore
+  % 2. Border it
+  gsave
+    0.7 setlinewidth
+    pw 0 rlineto
+    0 th neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+  % stk: ct rt lt
+  x v get y v get th sub 1 add moveto
+%%IncludeResource: font Helvetica
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  % 3. The left title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    fnfs 0.8 mul hm rmoveto
+    show			% left title
+  grestore
+  exch
+  % stk: ct ltw rt
+  % 4. the right title
+  gsave
+    dup stringwidth pop fnfs 0.8 mul add exch % leave space took on stack
+    dup
+    pw exch stringwidth pop fnfs 0.8 mul add sub
+    hm
+    rmoveto
+    show			% right title
+  grestore
+  % stk: ct ltw rtw
+  % 5. the center title
+  gsave
+    pw 3 1 roll
+    % stk: ct pw ltw rtw
+    3 copy 
+    % Move to the center of the left room
+    sub add 2 div hm rmoveto
+    % What is the available space in here?
+    add sub fnfs 0.8 mul sub fnfs 0.8 mul sub
+    % stk: ct space_left
+%%IncludeResource: font Helvetica-Bold
+  fHelvetica-Bold fnfs scalefont setfont
+    cfshow
+  grestore
+} bind def
+
+% Function border: prints virtual page border
+/border { %def
+  gsave				% print four sides
+    0 setgray
+    x v get y v get moveto
+    0.7 setlinewidth		% of the square
+    pw 0 rlineto
+    0 ph neg rlineto
+    pw neg 0 rlineto
+    closepath stroke
+  grestore
+} bind def
+
+% Function water: prints a water mark in background
+/water { %def
+  gsave
+    scx scy moveto rotate
+%%IncludeResource: font Times-Bold
+  fTimes-Bold 100 scalefont setfont
+    .97 setgray
+    dup stringwidth pop 2 div neg -50 rmoveto
+    show
+  grestore
+} bind def
+
+% Function rhead: prints the right header
+/rhead {  %def
+  lx ly moveto
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  l-show
+} bind def
+
+% Function footer (cf rf lf -> -)
+/footer {
+  fHelvetica fnfs 0.8 mul scalefont setfont
+  dx dy moveto
+  show
+
+  snx sny moveto
+  l-show
+  
+  fnx fny moveto
+  c-show
+} bind def
+%%EndResource
+%%BeginResource: procset a2ps-black+white-Prolog 2.0 1
+
+% Function T(ab), jumps to the n-th tabulation in the current line
+/T { 
+  cw mul x0 add y0 moveto
+} bind def
+
+% Function n: move to the next line
+/n { %def
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+} bind def
+
+% Function N: show and move to the next line
+/N {
+  Show
+  /y0 y0 bfs sub store
+  x0 y0 moveto
+}  bind def
+
+/S {
+  Show
+} bind def
+
+/p {
+  false UL
+  false BX
+  fCourier bfs scalefont setfont
+  Show
+} bind def
+
+/sy {
+  false UL
+  false BX
+  fSymbol bfs scalefont setfont
+  Show
+} bind def
+
+/k {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/K {
+  false UL
+  false BX
+  fCourier-Bold bfs scalefont setfont
+  Show
+} bind def
+
+/c {
+  false UL
+  false BX
+  fCourier-Oblique bfs scalefont setfont
+  Show
+} bind def
+
+/C {
+  false UL
+  false BX
+  fCourier-BoldOblique bfs scalefont setfont
+  Show 
+} bind def
+
+/l {
+  false UL
+  false BX
+  fHelvetica bfs scalefont setfont
+  Show
+} bind def
+
+/L {
+  false UL
+  false BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show 
+} bind def
+
+/str{
+  false UL
+  false BX
+  fTimes-Roman bfs scalefont setfont
+  Show
+} bind def
+
+/e{
+  false UL
+  true BX
+  fHelvetica-Bold bfs scalefont setfont
+  Show
+} bind def
+
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Symbol
+%%IncludeResource: font Courier-BoldOblique
+%%BeginResource: encoding ISO-8859-1Encoding
+/ISO-8859-1Encoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclam /quotedbl /numbersign /dollar /percent /ampersand /quoteright 
+/parenleft /parenright /asterisk /plus /comma /minus /period /slash 
+/zero /one /two /three /four /five /six /seven 
+/eight /nine /colon /semicolon /less /equal /greater /question 
+/at /A /B /C /D /E /F /G 
+/H /I /J /K /L /M /N /O 
+/P /Q /R /S /T /U /V /W 
+/X /Y /Z /bracketleft /backslash /bracketright /asciicircum /underscore 
+/quoteleft /a /b /c /d /e /f /g 
+/h /i /j /k /l /m /n /o 
+/p /q /r /s /t /u /v /w 
+/x /y /z /braceleft /bar /braceright /asciitilde /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef /.notdef 
+/space /exclamdown /cent /sterling /currency /yen /brokenbar /section 
+/dieresis /copyright /ordfeminine /guillemotleft /logicalnot /hyphen /registered /macron 
+/degree /plusminus /twosuperior /threesuperior /acute /mu /paragraph /bullet 
+/cedilla /onesuperior /ordmasculine /guillemotright /onequarter /onehalf /threequarters /questiondown 
+/Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla 
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis 
+/Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply 
+/Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls 
+/agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla 
+/egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis 
+/eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide 
+/oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis 
+] def
+%%EndResource
+% Initialize page description variables.
+/sh 595 def
+/sw 842 def
+/llx 24 def
+/urx 818 def
+/ury 571 def
+/lly 24 def
+/#copies 1 def
+/th 15.000000 def
+/fnfs 11 def
+/bfs 8.005733 def
+/cw 4.803440 def
+
+% Dictionary for ISO-8859-1 support
+/iso1dict 8 dict begin
+  /fCourier ISO-8859-1Encoding /Courier reencode_font
+  /fCourier-Bold ISO-8859-1Encoding /Courier-Bold reencode_font
+  /fCourier-BoldOblique ISO-8859-1Encoding /Courier-BoldOblique reencode_font
+  /fCourier-Oblique ISO-8859-1Encoding /Courier-Oblique reencode_font
+  /fHelvetica ISO-8859-1Encoding /Helvetica reencode_font
+  /fHelvetica-Bold ISO-8859-1Encoding /Helvetica-Bold reencode_font
+  /fTimes-Bold ISO-8859-1Encoding /Times-Bold reencode_font
+  /fTimes-Roman ISO-8859-1Encoding /Times-Roman reencode_font
+currentdict end def
+/bgcolor [ 0 0 0 ] def
+/bg false def
+/ul false def
+/bx false def
+% The font for line numbering
+/f# /Helvetica findfont bfs .6 mul scalefont def
+/fSymbol /Symbol findfont def
+/hm fnfs 0.25 mul def
+/pw
+   cw 81.400000 mul
+def
+/ph
+   501.959430 th add
+def
+/pmw urx llx sub pw 2 mul sub 1 div def
+/pmh 0 def
+/v 0 def
+/x [
+  0
+  dup pmw add pw add
+] def
+/y [
+  pmh ph add 0 mul ph add
+  dup
+] def
+/scx sw 2 div def
+/scy sh 2 div def
+/snx urx def
+/sny lly 2 add def
+/dx llx def
+/dy sny def
+/fnx scx def
+/fny dy def
+/lx snx def
+/ly ury fnfs 0.8 mul sub def
+/sx 0 def
+/tab 8 def
+/x0 0 def
+/y0 0 def
+%%EndSetup
+
+%%Page: (1-2) 1
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#include) K
+( ") p
+(Apermutacion.h) str
+(") p n
+() N
+( ) S
+(bool) k
+( Apermutacion::Repetidos\(\){) p n
+(   ) S
+(for) K
+( \() p
+(int) k
+( i=0;i<=level-1;i++\)) p n
+(      ) S
+(if) K
+( \(datos[i]==datos[level]\) ) p
+(return) K
+( ) p
+(true) k
+(;) p n
+(    ) S
+(return) K
+( ) p
+(false) k
+(;) p n
+( }) N
+( ) S
+(/***************************************************/) c n
+( ) p
+(bool) k
+( Apermutacion::EsSecuencia\() p
+(int) k
+( l\){) p n
+(   ) S
+(if) K
+( \(Repetidos\(\)\) ) p
+(return) K
+( ) p
+(false) k
+(;) p n
+(   ) S
+(return) K
+( level>=0 && level<=\() p
+(int) k
+(\)datos.size\(\)-1;) p n
+( }   ) N
+(  ) N
+( ) S
+(/***************************************************/) c
+(  ) p n
+( ) S
+(bool) k
+( Apermutacion::PosibleSecuencia\() p
+(int) k
+( l\){) p n
+(   ) S
+(if) K
+( \(Repetidos\(\)\) ) p
+(return) K
+( ) p
+(false) k
+(;) p n
+(   ) S
+(return) K
+( level>=0 && level<\() p
+(int) k
+(\)datos.size\(\)-1;) p n
+( }   ) N
+(  ) N
+(/***************************************************/) c
+(  ) p n
+(bool) k
+( Apermutacion::MasHermanos\() p
+(int) k
+( l\){) p n
+(  ) S
+(return) K
+( level>=0 && datos[level]<\() p
+(int) k
+(\)datos.size\(\);) p n
+(}) N
+(/***************************************************/) c
+(  ) p n
+() N
+(bool) k
+( Apermutacion::GeneraSiguiente\(\){) p n
+(  ) N
+(  ) S
+(if) K
+( \(level<\() p
+(int) k
+(\)datos.size\(\)-1\)) p
+(//Podemos avanzar al siguiente nivel) c n
+(     level=level+1;) p n
+(  ) S
+(while) K
+( \(level>=0 && !MasHermanos\(level\)\){) p n
+(    datos[level]=0;) N
+(    level--;) N
+(  }  ) N
+(  ) S
+(do) K
+({) p n
+(    Next\(level\);) N
+(    ) S
+(if) K
+( \(EsSecuencia\(level\)\)) p n
+(        ) S
+(return) K
+( ) p
+(true) k
+(;) p n
+(   ) N
+(    ) S
+(if) K
+( \(PosibleSecuencia\(level\)\) level++;) p n
+(    ) S
+(else) K n
+(      ) p
+(while) K
+( \(level>=0 && !MasHermanos\(level\)\){) p n
+(        datos[level]=0;) N
+(        level--;) N
+(      }) N
+(  }) S
+(while) K
+( \(level>=0\);) p n
+(  ) S
+(return) K
+( ) p
+(false) k
+(;) p n
+(}  ) N
+(     ) N
+(/***************************************************/) c
+(  ) p n
+() N
+(bool) k
+( Apermutacion::Backtracking\(\){) p n
+(  ) S
+(if) K
+( \(level==0\) ) p
+(return) K
+( ) p
+(false) k
+(;) p n
+(  ) S
+(else) K
+({) p n
+(    ) S
+(while) K
+( \(level>=0 && !MasHermanos\(level\)\){) p n
+(      datos[level]=0;) N
+(      level--;) N
+(     }) N
+(     ) S
+(if) K
+( \(level<0\) ) p
+(return) K
+( ) p
+(false) k
+(;) p n
+(  }) S 8 T () N
+(  ) S
+(do) K
+({) p n
+(    Next\(level\);) N
+(    ) S
+(if) K
+( \(EsSecuencia\(level\)\)) p n
+(Apermutacion.cpp) (Page 1/2) (may 12, 15 13:02) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(        ) p
+(return) K
+( ) p
+(true) k
+(;) p n
+(   ) N
+(    ) S
+(if) K
+( \(PosibleSecuencia\(level\)\) level++;) p n
+(    ) S
+(else) K n
+(      ) p
+(while) K
+( \(level>=0 && !MasHermanos\(level\)\){) p n
+(        datos[level]=0;) N
+(        level--;) N
+(      }) N
+(  }) S
+(while) K
+( \(level>=0\);) p n
+(  ) S
+(return) K
+( ) p
+(false) k
+(;) p n
+(}  ) N
+() N
+() N
+(/***************************************************/) c
+(  ) p n
+(int) k
+(  Apermutacion::NumeroSecuenciasPosibles\(\){) p n
+(     ) S
+(unsigned) k
+( ) p
+(int) k
+( suma=0;) p n
+(  ) N
+(    ) S
+(for) K
+( \() p
+(unsigned) k
+( ) p
+(int) k
+( k=1; k<=datos.size\(\);k++\){) p n
+(     ) S
+(int) k
+( total =1;) p n
+(     ) S
+(for) K
+( \() p
+(unsigned) k
+( ) p
+(int) k
+( i=k;i<=datos.size\(\);i++\)) p n
+(       total*=i;) N
+(    suma+=total;) N
+(  ) N
+(    ) N
+(  ) N
+(   }) N
+(   ) S
+(return) K
+( suma;) p n
+(}   ) S
+(Apermutacion.cpp) (Page 2/2) (may 12, 15 13:02) title
+border
+grestore
+(Printed by rosa) rhead
+(src/Apermutacion.cpp) (1/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 2
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#include) K
+( ") p
+(Apermutacion.h) str
+(") p n
+(#include) K
+( ") p
+(matriz_vector.h) str
+(") p n
+(#include) K
+( <fstream>) p n
+(#include) K
+( <iostream>) p n
+(#include) K
+( <ctime>) p n
+(/**) c n
+( * @brief Obtiene el mejor beneficio de asignar a n trabajadores n trabajos usan) N
+(do voraces) N
+( * @param n: el numero de trabajos o trabajadores) N
+( * @param B: matriz de beneficios ) N
+( * @return el mejor beneficio total) N
+( * */) N
+(int) k
+( Asi_Trabajadores_Voraz\() p
+(int) k
+( n,) p
+(const) K
+( Matriz<) p
+(unsigned) k
+( ) p
+(int) k
+(> &B\){) p n
+(   ) N
+(  Matriz<) S
+(bool) k
+(>usados\(n,n,) p
+(false) k
+(\);) p n
+(   ) N
+(   vector<) S
+(bool) k
+(>candidatos\(n,) p
+(true) k
+(\);) p n
+(   ) N
+(   ) S
+(unsigned) k
+( ) p
+(int) k
+( best_bene=0;) p n
+(   ) S
+(for) K
+( \() p
+(int) k
+( i=0;i<n;i++\){) p n
+(      ) S
+(if) K
+( \(candidatos[i]\){ ) p
+(// es un candidatos) c n
+() p 8 T () S
+(//buscamos entre os trabajos que quedan libres el mas beneficioso) c n
+() p 8 T () S
+(int) k
+( mejor=0; ) p
+(int) k
+( work=0;) p n
+() S 8 T () S
+(for) K
+( \() p
+(int) k
+( j=0;j<n;j++\){) p n
+() S 8 T (    ) S
+(if) K
+( \(usados[i][j]==) p
+(false) k
+(\)) p n
+() S 8 T (      ) S
+(if) K
+( \(\() p
+(int) k
+(\)B.get\(i,j\)>mejor\){) p n
+() S 8 T () S 16 T ( work=j; mejor = B.get\(i,j\);) N
+() S 8 T (      }) N
+() S 8 T () N
+() S 8 T (}) N
+() S 8 T (cout<<") S
+(Trabajador ) str
+("<<i+1<< ") p
+( asignamos el trabajo  ) str
+("<<work+1<<endl;) p n
+() S 8 T (best_bene +=mejor;) N
+() S 8 T () S
+(for) K
+( \() p
+(int) k
+( t=0;t<n;t++\){) p n
+() S 8 T (  usados.set\(t,work,) S
+(true) k
+(\);) p n
+() S 8 T (  usados.set\(i,t,) S
+(true) k
+(\);) p n
+() S 8 T (}) N
+() S 8 T (candidatos[i]=) S
+(false) k
+(;) p n
+(      }) N
+(   }) N
+(   ) S
+(return) K
+( best_bene;) p n
+() N
+(}   ) N
+(/**) c n
+( * @brief Establece una cota superior para los trabajadores aun no asignados a n) N
+(ingun trabajo.) N
+( * @param asignados: vector con los trabajadores asignados ya a trabajos) N
+( * @param B: matriz de beneficios ) N
+( * @return el beneficio estimado de asignar a los trabajadores aun no asignados ) N
+(trabajos aun libres.Puede que se  repita dicha asignacion) N
+( * */) S
+(  ) p n
+(int) k
+( CotaSuperior\(vector<) p
+(int) k
+(>asignados,) p
+(const) K
+( Matriz<) p
+(unsigned) k
+( ) p
+(int) k
+(> &B\){) p n
+(   Matriz<) S
+(bool) k
+(>usados\(asignados.size\(\),asignados.size\(\),) p
+(false) k
+(\);) p n
+(   ) S
+(int) k
+( n=asignados.size\(\);) p n
+(   vector<) S
+(bool) k
+(>candidatos\(n,) p
+(true) k
+(\);) p n
+(   ) N
+(   ) S
+(for) K
+( \() p
+(unsigned) k
+(  ) p
+(int) k
+( i=0;i<asignados.size\(\);i++\){) p n
+(      ) S
+(if) K
+(\(asignados[i]>=0\){) p n
+(       candidatos[i]=) S
+(false) k
+(;) p n
+(       ) S
+(for) K
+( \( ) p
+(int) k
+( j=0;j<n;j++\)) p n
+(         usados[j][asignados[i]]=) S
+(true) k
+(;) p n
+(      } ) N
+(   }) N
+(njob_nworker.cpp) (Page 1/5) (may 12, 15 17:14) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(   ) p
+(unsigned) k
+( ) p
+(int) k
+( best_bene=0;) p n
+(   ) S
+(for) K
+( \() p
+(int) k
+( i=0;i<n;i++\){) p n
+(      ) S
+(if) K
+( \(candidatos[i]\){ ) p
+(// es un candidatos) c n
+() p 8 T () S
+(//buscamos entre os trabajos que quedan libres el mas beneficioso) c n
+() p 8 T () S
+(int) k
+( mejor=0;) p n
+() S 8 T () S
+(//int work=0;) c n
+() p 8 T () S
+(for) K
+( \() p
+(int) k
+( j=0;j<n;j++\){) p n
+() S 8 T (    ) S
+(if) K
+( \(usados[i][j]==) p
+(false) k
+(\)) p n
+() S 8 T (      ) S
+(if) K
+( \(\() p
+(int) k
+(\)B.get\(i,j\)>mejor\){) p n
+() S 8 T () S 16 T ( ) S
+(//work=j; ) c n
+() p 8 T () S 16 T ( mejor = B.get\(i,j\);) N
+() S 8 T (      }) N
+() S 8 T () N
+() S 8 T (}) N
+() S 8 T () S
+(//cout<<"Trabajador "<<i+1<< "asignamos "<<work+1<<endl;) c n
+() p 8 T (best_bene +=mejor;) N
+() S 8 T () N
+() S 8 T () N
+(      }) N
+(   }) N
+(   ) S
+(return) K
+( best_bene;) p n
+(}     ) N
+(  ) N
+(/**) c n
+( * @brief Obtiene un vector de dimension n asociada a la Permutacion) N
+( * @param P: un objeto de tipo arbol de soluciones basados en permutaciones) N
+( * @param n: el numero de trabajos o trabajadores) N
+( * @return el vector asociado a la permutacion) N
+( * */) S
+(  ) p n
+(vector<) S
+(int) k
+(> ObtainAsignaciones\() p
+(const) K
+( Apermutacion &P,) p
+(int) k
+( n\){) p n
+(    vector<) S
+(int) k
+(> out\(n,-1\);) p n
+(    Apermutacion::const_iterator it;) N
+(    ) S
+(int) k
+( i=0;) p n
+(    ) S
+(for) K
+( \(it=P.begin\(\);it!=P.end\(\);++it,++i\){) p n
+(        ) S
+(int) k
+( c=*it;) p n
+(        c--;) N
+(        out[i]=c;) N
+(    }) N
+(    ) S
+(return) K
+( out;) p n
+(}    ) N
+(/**) c n
+( * @brief Obtiene la suma del beneficio acumulado de las asignaciones realizadas) N
+( * @param P: un objeto de tipo arbol de soluciones basados en permutaciones) N
+( * @param B: matriz de beneficios ) N
+( * @return el beneficio acumulado) N
+( * */) S
+(  ) p n
+() N
+(unsigned) k
+( ) p
+(int) k
+( Suma_Beneficio\(Apermutacion &P, ) p
+(const) K
+( Matriz<) p
+(unsigned) k
+( ) p
+(int) k
+(> &B\){) p n
+(  Apermutacion:: iterator it;) N
+(  ) S
+(unsigned) k
+( ) p
+(int) k
+( s=0;) p n
+(  ) S
+(int) k
+( i;) p n
+(  ) S
+(for) K
+( \(i=0, it=P.begin\(\);it!=P.end\(\);++it,++i\){) p n
+(     ) S
+(int) k
+( col =*it; col--;) p n
+(     s+=B.get\(i,col\);) N
+(  }   ) N
+(  ) S
+(return) K
+( s;) p n
+(  ) N
+(}) N
+() N
+(/**) c n
+( * @brief Muestra en la salida estandar la asignacion realizada.) N
+( * @param P: un objeto de tipo arbol de soluciones basados en permutaciones) N
+(njob_nworker.cpp) (Page 2/5) (may 12, 15 17:14) title
+border
+grestore
+(Printed by rosa) rhead
+(src/njob_nworker.cpp) (2/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 3
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+( * */) c
+(  ) p n
+(void) k
+( MuestraAsignacion\() p
+(const) K
+( Apermutacion & P\){) p n
+(  Apermutacion::const_iterator it;) N
+(  ) S
+(int) k
+( i=0;) p n
+(  ) S
+(for) K
+( \(it=P.begin\(\);it!=P.end\(\);++it,++i\)) p n
+(      cout<<") S
+(Trabajador ) str
+("<<i +1<<") p
+( le asigna el trabajo ) str
+("<<*it<<endl;) p n
+(  cout<<endl;    ) N
+(} ) N
+() N
+(/**) c n
+( * @brief Obtiene el mejor beneficio de asignar a n trabajadores n trabajos usan) N
+(do backtracking) N
+( * @param n: el numero de trabajos o trabajadores) N
+( * @param ab: Arbol de permutaciones para obtener la mejor solucion) N
+( * @param B: matriz de beneficios ) N
+( * @return el mejor beneficio total) N
+( * */) N
+() p n
+(int) k
+( Asig_Trabajadores\() p
+(int) k
+( n, Apermutacion &ab,) p
+(const) K
+( Matriz<) p
+(unsigned) k
+( ) p
+(int) k
+(> &B\){) p n
+(    Apermutacion P\(n\); ) N
+(    ) S
+(bool) k
+( seguir =) p
+(true) k
+(;) p n
+(    ) S
+(int) k
+( bact=0; ) p
+(int) k
+( best_beneficio=0;) p n
+(    ) S
+(unsigned) k
+( ) p
+(int) k
+( nodos_recorridos =0;) p n
+(    ) S
+(while) K
+( \(seguir\){) p n
+(        nodos_recorridos++;) N
+(        bact=Suma_Beneficio\(P,B\);) N
+() S 8 T () S
+(if) K
+( \(P.GetLevel\(\)==n-1\){) p n
+() S 8 T (  ) S
+(if) K
+( \(bact>best_beneficio\){) p n
+() S 8 T (      ) S
+(/*cout<<"Actualizando solucion : "<<bact<<endl;) c n
+() S 8 T (      MuestraAsignacion\(P\);*/) N
+() p 8 T (      best_beneficio=bact;) N
+() S 8 T (      ab=P;) N
+() S 8 T (      seguir =P.Backtracking\(\); ) S
+(//da igual hacer P.GeneraSiguiente\(\) ya ) c n
+(que estamos en una hoja) N
+() p 8 T (  }) N
+() S 8 T (  ) S
+(else) K
+( seguir=P.GeneraSiguiente\(\);) p n
+() S 8 T (}) N
+() S 8 T () S
+(else) K
+( seguir=P.GeneraSiguiente\(\);) p n
+() S 8 T () N
+(    }) N
+(    ) S
+(int) k
+( total=P.NumeroSecuenciasPosibles\(\);) p n
+(    cout<<") S
+(Numero de nodos recorridos ) str
+("<<nodos_recorridos<< ") p
+( total nodos ) str
+("<<total<<") p
+( Porcentaj) str n
+(e ) S
+("<<\(nodos_recorridos/\() p
+(double) k
+(\)total\)*100.0<<endl;) p n
+(    ) S
+(return) K
+( best_beneficio;) p n
+(}    ) N
+(    ) N
+(    ) N
+() N
+(/**) c n
+( * @brief Obtiene el mejor beneficio de asignar a n trabajadores n trabajos usan) N
+(do backtracking y un poda basada en un cota superior) N
+( * @param n: el numero de trabajos o trabajadores) N
+( * @param ab: Arbol de permutaciones para obtener la mejor solucion) N
+( * @param B: matriz de beneficios ) N
+( * @return el mejor beneficio total) N
+( * */) S
+(    ) p n
+(int) k
+( Asig_Trabajadores_Poda\() p
+(int) k
+( n, Apermutacion &ab,) p
+(const) K
+( Matriz<) p
+(unsigned) k
+( ) p
+(int) k
+(> &B) p n
+(\){) N
+(    Apermutacion P\(n\); ) N
+(    ) S
+(bool) k
+( seguir =) p
+(true) k
+(;) p n
+(    ) S
+(int) k
+( bact=0; ) p
+(int) k
+( best_beneficio=0;) p n
+(    ) S
+(unsigned) k
+( ) p
+(int) k
+( nodos_recorridos =0;) p n
+(njob_nworker.cpp) (Page 3/5) (may 12, 15 17:14) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(    ) p
+(while) K
+( \(seguir\){) p n
+(        nodos_recorridos++;) N
+(        bact=Suma_Beneficio\(P,B\);) N
+() S 8 T () S
+(if) K
+( \(P.GetLevel\(\)==n-1\){) p n
+() S 8 T (  ) S
+(if) K
+( \(bact>best_beneficio\){) p n
+() S 8 T (      ) S
+(/*cout<<"Actualizando solucion : "<<bact<<endl;) c n
+() S 8 T (      MuestraAsignacion\(P\);*/) N
+() p 8 T (      best_beneficio=bact;) N
+() S 8 T (      ab=P;) N
+() S 8 T (      seguir =P.Backtracking\(\);) N
+() S 8 T (  }) N
+() S 8 T (  ) S
+(else) K
+( ) p n
+() S 8 T (      ) N
+() S 8 T (        seguir=P.GeneraSiguiente\(\);) N
+() S 8 T (    ) N
+() S 8 T ( }) N
+() S 8 T () S
+(else) K
+({) p n
+() S 8 T (   vector<) S
+(int) k
+(> C=ObtainAsignaciones\(P,n\);) p n
+() S 8 T (   ) S
+(int) k
+( bestimado = bact+CotaSuperior\(C,B\);) p n
+() S 8 T (   ) S
+(if) K
+( \(bestimado >=best_beneficio\)) p n
+() S 8 T (      seguir=P.GeneraSiguiente\(\);) N
+() S 8 T (   ) S
+(else) K n
+() p 8 T (      seguir =P.Backtracking\(\);) N
+() S 8 T (   ) N
+() S 8 T (}) N
+(    }) N
+(    ) S
+(int) k
+( total=P.NumeroSecuenciasPosibles\(\);) p n
+(    cout<<") S
+(Numero de nodos recorridos ) str
+("<<nodos_recorridos<< ") p
+( total nodos ) str
+("<<total<<") p
+( Porcentaj) str n
+(e ) S
+("<<\(nodos_recorridos/\() p
+(double) k
+(\)total\)*100.0<<endl;) p n
+(    ) S
+(return) K
+( best_beneficio;) p n
+(}    ) N
+( ) N
+() N
+( ) N
+( ) N
+(int) k
+( main\() p
+(int) k
+( argc, ) p
+(char) k
+( *argv[]\){) p n
+(  ) S
+(if) K
+( \(argc!=2\){) p n
+(      cout<<") S
+(Dime el fichero con la matriz de beneficios) str
+("<<endl;) p n
+(      ) S
+(return) K
+( 0;) p n
+(  }) N
+(   ) N
+(   ifstream f \(argv[1]\);) N
+(   ) S
+(if) K
+( \(!f\){) p n
+(      cerr<<") S
+(No puedo abrir el fichero ) str
+("<<argv[1];) p n
+(      ) S
+(return) K
+( 0;) p n
+(   }) N
+(   Matriz<) S
+(unsigned) k
+( ) p
+(int) k
+(> M;) p n
+(   f>>M;) N
+(   ) N
+(   cout<<") S
+(Beneficios \(filas=trabajadores, columnas=trabajos\):) str
+("<<endl;) p n
+(   cout<<M<<endl;) N
+(   ) N
+(   ) S
+(if) K
+( \(M.filas\(\)!=M.cols\(\)\){) p n
+(     cout<<") S
+(La matriz de beneficios debe ser cuadrada) str
+("<<endl;) p n
+(     ) S
+(return) K
+( 0;) p n
+(   }  ) N
+(   ) S
+(int) k
+( n = M.filas\(\);) p n
+(  ) N
+(   cout<<endl;) N
+(   clock_t tantes,tdespues;) N
+(   cout<<") S
+(__________________________________) str
+("<<endl;) p n
+(   cout<<") S
+(Algoritmo voraz...) str
+("<<endl;) p n
+(njob_nworker.cpp) (Page 4/5) (may 12, 15 17:14) title
+border
+grestore
+(Printed by rosa) rhead
+(src/njob_nworker.cpp) (3/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (5) 4
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(   tantes=clock\(\);) p n
+(   cout<<") S
+(Con voraces beneficio total: ) str
+("<<Asi_Trabajadores_Voraz\(n,M\)<<endl ;) p n
+(   tdespues=clock\(\);) N
+(   cout<<") S
+(Tiempo ) str
+("<<\(tdespues-tantes\)/\() p
+(double) k
+(\)CLOCKS_PER_SEC;) p n
+(   cout<<endl<<") S
+(__________________________________) str
+("<<endl;) p n
+(   Apermutacion Pbest\(n\);) N
+(   cout<<") S
+(Algoritmo Backtracking....) str
+("<<endl;) p n
+(   tantes=clock\(\);) N
+(   cout<<") S
+(Best_Beneficio con Backtracking: ) str
+("<<Asig_Trabajadores\(n,Pbest ,M\)<<endl;) p n
+(   MuestraAsignacion\(Pbest\);) N
+(   tdespues=clock\(\);) N
+(   cout<<") S
+(Tiempo ) str
+("<<\(tdespues-tantes\)/\() p
+(double) k
+(\)CLOCKS_PER_SEC;) p n
+(   cout<<endl<<") S
+(__________________________________) str
+("<<endl;) p n
+(   ) N
+(   Apermutacion Pbest_Poda\(n\);) N
+(   cout<<") S
+(Algoritmo Backtracking con Poda....) str
+("<<endl;) p n
+(   tantes=clock\(\);) N
+(   cout<<") S
+(Best_Beneficio con Backtracking y Poda: ) str
+("<<Asig_Trabajadores_Poda\(n,Pbest_Poda ,M) p n
+(\)<<endl;) N
+(   MuestraAsignacion\(Pbest_Poda\);) N
+(   tdespues=clock\(\);) N
+(   cout<<") S
+(Tiempo ) str
+("<<\(tdespues-tantes\)/\() p
+(double) k
+(\)CLOCKS_PER_SEC;) p n
+(   cout<<endl<<") S
+(__________________________________) str
+("<<endl;) p n
+( ) N
+(}   ) N
+(   ) N
+(   ) N
+(   ) N
+(   ) N
+() N
+() N
+(njob_nworker.cpp) (Page 5/5) (may 12, 15 17:14) title
+border
+grestore
+(Printed by rosa) rhead
+(src/njob_nworker.cpp) (4/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1) 5
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#include) K
+( <iostream>) p n
+(#include) K
+( ") p
+(Apermutacion.h) str
+(") p n
+(#include) K
+( <string> ) p n
+(template) K
+( <) p
+(class) K
+( T>) p n
+(ostream & ) S
+(operator) K
+(<<\(ostream &os, ) p
+(const) K
+( vector<T> & d\){) p n
+(   ) S
+(for) K
+( \() p
+(int) k
+( i=0;i<d.size\(\);i++\)) p n
+(      os<<d[i]<<") S
+( ) str
+(";) p n
+(   os<<endl;) N
+(   ) S
+(return) K
+( os;) p n
+(}) N
+() N
+(void) k
+( MuestraSecuencia\() p
+(const) K
+( Apermutacion & P\){) p n
+(  Apermutacion::const_iterator it;) N
+(  ) N
+(  ) S
+(for) K
+( \(it=P.begin\(\);it!=P.end\(\);++it\)) p n
+(      cout<<*it<<") S
+( ) str
+(";) p n
+(  cout<<endl;    ) N
+(}) N
+() N
+() N
+(int) k
+( main\(\){) p n
+(  ) S
+(int) k
+( n;) p n
+(  cout<<") S
+(Dime el tama\303\261o de las secuencias :) str
+(";) p n
+(  cin>>n;) N
+(  ) N
+(  Apermutacion P\(n\);) N
+(  ) N
+(  cout<<") S
+(El numero total de secuencias: ) str
+("<<P.NumeroSecuenciasPosibles\(\)<<endl;) p n
+(  ) N
+(  ) S
+(do) K
+({) p n
+(  MuestraSecuencia\(P\);) N
+(   ) N
+(  }) S
+(while) K
+( \(P.GeneraSiguiente\(\)\);) p n
+(  ) N
+() N
+() N
+(  ) N
+(}  ) N
+(  ) N
+(  ) N
+(   ) N
+(  ) N
+(prueba_APermutacion.cpp) (Page 1/1) (may 12, 15 10:31) title
+border
+grestore
+(Printed by rosa) rhead
+(src/prueba_APermutacion.cpp) (5/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 6
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#ifndef) K
+( __APERMUTA__) p n
+(#define) K
+( __APERMUTA__) p n
+(#include) K
+( <vector>) p n
+(using namespace std;) N
+(/**) c n
+(   @brief T.D.A. APermutacion) N
+(   ) N
+(   \\b Definici\303\263n:) N
+(   Una instancia \\e a del tipo de dato abstracto APermutacion sobre un dominio d) N
+(e enteros) N
+(   genera secuencias \(x1,x2,x3,...,xk\) 1<=k<=n donde cada xi toma valores 1,,,.k) N
+(, y ademas xi<>xj para i<>j.) N
+(   ) N
+(   Para poder usar el tipo de dato APermutacion se debe incluir el fichero) N
+(   ) N
+(   <tt>\\#include APermutacion.h</tt>) N
+(   ) N
+(   El espacio requerido para el almacenamiento es O\(n\), donde n es la longitud m) N
+(axima de cada secuencia) N
+(   ) N
+(   @author Rosa M\302\252 Rodr\303\255guez S\303\241nchez) N
+(   @date 12 de Mayo de 2015) N
+(*/) N
+() p n
+() N
+(class Apermutacion{) N
+(  private:) N
+(   vector<) S
+(int) k
+(>datos;) p n
+(   ) S
+(int) k
+( level;) p n
+(public:) N
+(  ) S
+(/**) c n
+(   * @brief Constructor por parametros. Inicia la permutacion) N
+(   * con n valores a 0.) N
+(   * ) N
+(   * */) N
+(  Apermutacion\() p
+(int) k
+( n\):datos\(vector<) p
+(int) k
+(>\(n,0\)\),level\(-1\){) p n
+(    GeneraSiguiente\(\);) N
+(  }) N
+(   ) N
+(  ) S
+(/** ) c n
+(   *@brief Establece si la permutacion tiene valores repetidos) N
+(   * @return true si hay  valores repetidos y false en caso contrario) N
+(   **/) N
+(  bool Repetidos\(\); ) p n
+(  ) N
+(  ) S
+(/** ) c n
+(   * @brief Avance al siguiente valor por el nivel por el que va) N
+(   * */) N
+(  ) p n
+(  ) S
+(void) k
+( Next\() p
+(int) k
+( l\){) p n
+(    datos[l]++;) N
+(  }  ) N
+(     ) N
+(  ) S
+(/** ) c n
+(   * @brief Analiza  si es una permutacion valida ) N
+(   * @param l: el nivel hasta el que se quiere analizar si es secuencia valida) N
+(   * @return devuelve true si es permutacion valida false en caso contrario) N
+(   * */) N
+(  bool EsSecuencia\() p
+(int) k
+( l\);) p n
+(  ) N
+(  ) S
+(/** ) c n
+(   * @brief Analiza  si es una secuencia que puede dar lugar a una  permutacion ) N
+(Apermutacion.h) (Page 1/4) (may 12, 15 13:02) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(valida \(potencia   permutacion valida\)) c n
+(   * @param l: el nivel hasta el que se quiere analizar si es secuencia valida) N
+(   * @return devuelve true si es potencial permutacion valida false en caso cont) N
+(rario) N
+(   * */) N
+(  bool PosibleSecuencia\() p
+(int) k
+( l\);) p n
+(  ) N
+(  ) S
+(/** ) c n
+(   * @brief Analiza  si existen mas valores posibles para el nivel dado) N
+(   * @param l: el nivel ) N
+(   * @return devuelve true si existen mas posibles valores false en caso contrar) N
+(io) N
+(   * */) N
+(  bool MasHermanos \() p
+(int) k
+( l\);) p n
+(  ) N
+(  ) S
+(/** ) c n
+(   * @brief Obtiene la siguiente permutacion valida) N
+(   * @return devuelve true si se ha generado una permutacion, false si no se pue) N
+(de generar porque ya se ) N
+(   * han generado todas) N
+(   * */) N
+(  ) p n
+(  bool GeneraSiguiente\(\);) N
+(  ) N
+(  ) N
+(  ) S
+(/** ) c n
+(   * @brief Obtiene la siguiente permutacion valida por la siguiente rama.) N
+(   * @return devuelve true si se ha generado una permutacion, false si no se pue) N
+(de generar porque ya se ) N
+(   * han generado todas) N
+(   * */) N
+(  bool Backtracking\(\);) p n
+(    ) N
+(  ) N
+(  ) S
+(/** ) c n
+(   * @brief Devuelve  el nivel de la secuencia hasta el momento) N
+(   */) N
+(  ) p n
+(   ) S
+(int) k
+( GetLevel\(\)) p
+(const) K
+({ ) p n
+(      ) S
+(return) K
+( level;) p n
+(    }) N
+(  ) N
+(   ) S
+(/**) c n
+(    * @brief devuelve el numero posible de secuencias) N
+(    * ) N
+(    */) N
+(   ) p
+(int) k
+( NumeroSecuenciasPosibles\(\);) p n
+(  ) N
+(  ) N
+(  ) S
+(/****************************************/) c n
+(  ) p
+(/*Iteradores*/) c n
+(    class iterator{) p n
+(    private:) N
+(       vector< ) S
+(int) k
+(> ::iterator it;) p n
+(       vector< ) S
+(int) k
+(> ::iterator final;) p n
+(       ) N
+(    public:) N
+(        iterator \(\){ }) N
+(        iterator & operator++\(\){) N
+() S 8 T (     ++it;) N
+() S 8 T (    ) S
+(return) K
+( *this;) p n
+() S 8 T (}) N
+(Apermutacion.h) (Page 2/4) (may 12, 15 13:02) title
+border
+grestore
+(Printed by rosa) rhead
+(include/Apermutacion.h) (6/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3-4) 7
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () N
+() S 8 T (iterator & operator --\(\){) N
+() S 8 T (   --it;) N
+() S 8 T (  ) S
+(return) K
+( *this;) p n
+() S 8 T (}) N
+() S 8 T () N
+() S 8 T (bool operator ==\() S
+(const) K
+( iterator & i\)) p
+(const) K
+({) p n
+() S 8 T (   ) S
+(return) K
+( \(i.it==it\);) p n
+() S 8 T (}) N
+() S 8 T (bool operator !=\() S
+(const) K
+( iterator & i\)) p
+(const) K
+({) p n
+() S 8 T (   ) S
+(return) K
+( \(i.it!=it\);) p n
+() S 8 T (}  ) N
+() S 8 T () N
+() S 8 T () S
+(int) k
+( & operator*\(\)) p
+(const) K
+( {) p n
+() S 8 T (   ) S
+(return) K
+( *it;) p n
+() S 8 T (}) N
+() S 8 T (friend class Apermutacion;) N
+(    };) N
+(    ) N
+(    ) N
+(    ) N
+(    class const_iterator{) N
+(    private:) N
+(       vector<) S
+(int) k
+(>::const_iterator it;) p n
+(       vector< ) S
+(int) k
+(> ::const_iterator final;) p n
+(    public:) N
+(        const_iterator \(\){ }) N
+(        ) N
+(        const_iterator & operator++\(\){) N
+() S 8 T (   ++it;) N
+() S 8 T (    ) S
+(return) K
+( *this;) p n
+() S 8 T (}) N
+() S 8 T () N
+() S 8 T (const_iterator & operator --\(\){) N
+() S 8 T (   --it;) N
+() S 8 T (  ) S
+(return) K
+( *this;) p n
+() S 8 T (}) N
+() S 8 T () N
+() S 8 T (bool operator ==\() S
+(const) K
+( const_iterator & i\)) p
+(const) K
+({) p n
+() S 8 T (   ) S
+(return) K
+( \(i.it==it\);) p n
+() S 8 T (}) N
+() S 8 T (bool operator !=\() S
+(const) K
+( const_iterator & i\)) p
+(const) K
+( {) p n
+() S 8 T (   ) S
+(return) K
+( \(i.it!=it\);) p n
+() S 8 T (}  ) N
+() S 8 T () N
+() S 8 T () S
+(const) K
+(  ) p
+(int) k
+( & operator*\(\)) p
+(const) K
+( {) p n
+() S 8 T (   ) S
+(return) K
+( *it;) p n
+() S 8 T (}) N
+() S 8 T (friend class Apermutacion;) N
+(    };) N
+(    ) N
+(    ) N
+(    ) N
+(    ) N
+(    ) N
+(    ) N
+(    ) N
+(    iterator begin\(\){) N
+() S 8 T (iterator i;) N
+() S 8 T (i.it=datos.begin\(\);) N
+() S 8 T () S
+(if) K
+( \(level>=0\)) p n
+() S 8 T ( i.final=datos.begin\(\)+level+1;) N
+(Apermutacion.h) (Page 3/4) (may 12, 15 13:02) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S
+(else) K
+( i.final=datos.end\(\);) p n
+() S 8 T () S
+(return) K
+( i;) p n
+(    }) N
+(    iterator end\(\){) N
+(        iterator i;) N
+() S 8 T () S
+(if) K
+( \(level>=0\){) p n
+(         ) S
+(if) K
+( \(level ==\() p
+(int) k
+(\)datos.size\(\)-1 && datos[level]>0\)) p n
+() S 8 T (   i.it=datos.end\(\);) N
+() S 8 T ( ) S
+(else) K n
+() p 8 T (   i.it = datos.begin\(\)+level+1;) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K
+( i.it=datos.end\(\);) p n
+() S 8 T (i.final = i.it;) N
+() S 8 T () N
+() S 8 T () S
+(return) K
+( i;) p n
+(    }) N
+(    ) N
+(    ) N
+(    const_iterator begin\(\)) S
+(const) K
+({) p n
+() S 8 T (const_iterator i;) N
+() S 8 T (i.it=datos.begin\(\);) N
+() S 8 T () S
+(if) K
+( \(level>=0\)) p n
+() S 8 T ( i.final=datos.begin\(\)+level+1;) N
+() S 8 T () S
+(else) K
+( i.final=datos.end\(\);) p n
+() S 8 T () S
+(return) K
+( i;) p n
+(    }) N
+(    const_iterator end\(\)) S
+(const) K
+({) p n
+(        const_iterator i;) N
+() S 8 T () N
+() S 8 T () S
+(if) K
+( \(level>=0\){) p n
+(         ) S
+(if) K
+( \(level ==\() p
+(int) k
+(\)datos.size\(\)-1 && datos[level]>0\)) p n
+() S 8 T (   i.it=datos.end\(\);) N
+() S 8 T ( ) S
+(else) K n
+() p 8 T (   i.it = datos.begin\(\)+level+1;) N
+() S 8 T (}) N
+() S 8 T () S
+(else) K
+( i.it=datos.end\(\);) p n
+() S 8 T (   ) N
+() S 8 T (i.final = i.it;) N
+() S 8 T () N
+() S 8 T () N
+() S 8 T () S
+(return) K
+( i;) p n
+(    }) N
+(};) N
+(#endif) K
+(Apermutacion.h) (Page 4/4) (may 12, 15 13:02) title
+border
+grestore
+(Printed by rosa) rhead
+(include/Apermutacion.h) (7/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (1-2) 8
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+(#ifndef) K
+( _MATRIZ_H) p n
+(#define) K
+( _MATRIZ_H) p n
+(#include) K
+( <iostream>) p n
+(#include) K
+( <vector>) p n
+(#include) K
+( <cassert>) p n
+(#include) K
+( <algorithm>) p n
+(using namespace std;) N
+(template <class T>) N
+(class Matriz{) N
+() S 8 T (  private:) N
+() S 8 T () S 16 T (    vector<vector<T> > m;) N
+() S 8 T () S 16 T (    ) S
+(int) k
+( nr, nc;) p n
+() S 8 T () S 16 T (    ) S
+(void) k
+( Copiar\() p
+(const) K
+( Matriz<T> &M\){) p n
+() S 8 T () S 16 T () S 24 T (   this->nr= M.nr;) N
+() S 8 T () S 16 T () S 24 T (  this->nc = M.nc;) N
+() S 8 T () S 16 T () S 24 T (  ) N
+() S 8 T () S 16 T () S 24 T (  m = vector< vector<T> >\(nr\);) N
+() S 8 T () S 16 T () S 24 T (  typename vector<vector<T> >::iterator it_r;) N
+() S 8 T () S 16 T () S 24 T (  typename vector<vector<T> >::const_iterator it_r_m;) N
+() S 8 T () S 16 T () S 24 T (  ) S
+(for) K
+( \(it_r_m=M.m.begin\(\),it_r=m.begin\(\);it_r_m!=M.m.end) p n
+(\(\); ++it_r_m,++it_r\){) N
+() S 8 T () S 16 T () S 24 T () S 32 T (    typename vector<T>::const_iterator it_c_m;) N
+() S 8 T () S 16 T () S 24 T () S 32 T (    *it_r=vector<T>\(nc\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (    typename vector<T>::iterator it_c;) N
+() S 8 T () S 16 T () S 24 T () S 32 T (    ) S
+(//El for de abajo se puede sustituir por \(*i) c n
+(t_r\).assign\(\(*it_r_m\).begin\(\),\(*it_r_m\).end\(\)) N
+() p 8 T () S 16 T () S 24 T () S 32 T (    ) S
+(for) K
+( \(it_c_m =\(*it_r_m\).begin\(\),it_c=\(*it_r\).) p n
+(begin\(\); it_c_m!=\(*it_r_m\).end\(\); ++it_c_m,++it_c\){) N
+() S 8 T () S 16 T () S 24 T () S 32 T (         *it_c=*it_c_m;  ) N
+() S 8 T () S 16 T () S 24 T () S 32 T (    }) N
+() S 8 T () S 16 T () S 24 T (  }) N
+() S 8 T () S 16 T () S 24 T (  ) S
+(//La asignacion t\303\255pica es) c n
+() p 8 T () S 16 T () S 24 T (  ) S
+(//for \(int i=0;i<nr;i++\){) c n
+() p 8 T () S 16 T () S 24 T (  ) S
+(//    m[i]= vector<T>\(nc\);) c n
+() p 8 T () S 16 T () S 24 T (  ) S
+(//) c 32 T (for \(int j=j<nc;j++\)) N
+() p 8 T () S 16 T () S 24 T (  ) S
+(//) c 32 T () S 40 T (m[i][j]= M.m[i][j];) N
+() p 8 T () S 16 T () S 24 T (  ) S
+(//) c 32 T (}) N
+() p 8 T () S 16 T () S 24 T (      ) N
+() S 8 T () S 16 T (    }) N
+() S 8 T () S 16 T (    ) S
+(void) k
+( Borrar\(\){) p n
+() S 8 T () S 16 T () S 24 T ( ) S
+(//Todo el codigo de abajo se podr\303\255a implementar con la) c n
+( sentencia m.clear\(\)     ) N
+() p 8 T () S 16 T () S 24 T (typename vector<vector<T> >::iterator it_r;) N
+() S 8 T () S 16 T () S 24 T () S
+(//el for se podr\303\255a haber eliminado y solamente dejar m.) c n
+(erase\(m.begin\(\),m.end\(\)\);) N
+() p 8 T () S 16 T () S 24 T () S
+(for) K
+( \(it_r = m.begin\(\); it_r!=m.end\(\);++it_r\)) p n
+() S 8 T () S 16 T () S 24 T () S 32 T ( \(*it_r\).erase\(\(*it_r\).begin\(\),\(*it_r\).end\(\)\);) N
+() S 8 T () S 16 T () S 24 T (m.erase\(m.begin\(\),m.end\(\)\);) N
+() S 8 T () S 16 T () S 24 T () N
+() S 8 T () S 16 T (    }) S 24 T () S 32 T () N
+() S 8 T (  public:) N
+() S 8 T () S 16 T (Matriz\(\):nr\(0\),nc\(0\){}) N
+() S 8 T () S 16 T (Matriz\() S
+(int) k
+( nr,) p
+(int) k
+( nc, ) p
+(const) K
+( T&value = T\(\)\){) p n
+() S 8 T () S 16 T () S 24 T (   this->nr=nr;) N
+() S 8 T () S 16 T () S 24 T (   this->nc=nc;) N
+() S 8 T () S 16 T () S 24 T (   m= vector< vector<T> >\(nr\);) N
+() S 8 T () S 16 T () S 24 T (   typename vector <vector<T> >::iterator it;) N
+() S 8 T () S 16 T () S 24 T (   ) S
+(for) K
+( \(it=m.begin\(\); it!=m.end\(\);++it\){ ) p
+(// for \(it=m.rb) c n
+(egin\(\);it!=m.rend\(\);++it\){) N
+() p 8 T () S 16 T () S 24 T (      *it=vector<T>\(nc,value\);) N
+() S 8 T () S 16 T () S 24 T (   }) N
+() S 8 T () S 16 T (}) N
+(matriz_vector.h) (Page 1/3) (may 12, 15 13:28) title
+border
+/v 1 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T (~Matriz\(\){}) N
+() S 8 T () S 16 T (Matriz\() S
+(const) K
+( Matriz<T>&M\){) p n
+() S 8 T () S 16 T () S 24 T (  Copiar\(M\);) N
+() S 8 T () S 16 T (}) S 24 T (  ) N
+() S 8 T () S 16 T (Matriz<T> & operator=\() S
+(const) K
+( Matriz<T> & M\){) p 64 T (  ) N
+() S 8 T () S 16 T () S 24 T (  ) S
+(if) K
+( \(this!=&M\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (    Borrar\(\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (    Copiar\(M\);) N
+() S 8 T () S 16 T () S 24 T (  }) N
+() S 8 T () S 16 T () S 24 T (  ) S
+(return) K
+( *this;) p n
+() S 8 T (        }) S 24 T () N
+() S 8 T (        ) S
+(int) k
+( filas\(\)) p
+(const) K
+({ ) p
+(return) K
+( nr;}) p n
+() S 8 T (        ) S
+(int) k
+( cols\(\)) p
+(const) K
+( {) p
+(return) K
+( nc;}) p n
+() S 8 T (        ) S
+(//A\303\261ade una columna en la posicion pos-esima) c n
+() p 8 T (       Matriz<T>& addCol\() S
+(int) k
+( pos,) p
+(const) K
+(  vector<T> &v\){) p n
+() S 8 T () S 16 T () S 24 T ( assert\(v.size\(\)==nr\);) N
+() S 8 T () S 16 T () S 24 T ( ) S
+(//tenemos que hacer un resize de cada fila ) c n
+() p 8 T () S 16 T () S 24 T ( ) N
+() S 8 T () S 16 T () S 24 T ( typename vector <vector<T> >::iterator it;) N
+() S 8 T () S 16 T () S 24 T ( typename vector<T>::const_iterator itv=v.begin\(\);) N
+() S 8 T () S 16 T () S 24 T ( ) S
+(for) K
+( \(it=m.begin\(\);it!=m.end\(\); ++it,++itv\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (   \(*it\).resize\(nc+1\);) N
+() S 8 T () S 16 T () S 24 T () S 32 T (   ) S
+(for) K
+( \() p
+(int) k
+( i=nc;i>pos;i--\)) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (    \(*it\)[i]=\(*it\)[i-1]; ) S
+(//*it.at\(i\)=*it) c n
+(.at\(i-1\)) N
+() p 8 T () S 16 T () S 24 T () S 32 T (   ) N
+() S 8 T () S 16 T () S 24 T () S 32 T (  \(*it\)[pos]=*itv;) N
+() S 8 T () S 16 T () S 24 T ( }) N
+() S 8 T () S 16 T () S 24 T ( nc++;) N
+() S 8 T () S 16 T () S 24 T ( ) S
+(return) K
+( *this;) p n
+() S 8 T (       }) N
+() S 8 T (       ) N
+() S 8 T (       ) S
+(//A\303\261ade una fila en la posicion pos-esima) c n
+() p 8 T (       Matriz<T>& addRow\() S
+(int) k
+( pos,) p
+(const) K
+(  vector<T> &v\){) p n
+() S 8 T () S 16 T () S 24 T ( assert\(v.size\(\)==nc\);) N
+() S 8 T () S 16 T () S 24 T ( ) S
+(//tenemos que hacer un resize de cada  columna) c n
+() p 8 T () S 16 T () S 24 T ( m.resize\(nr+1\);) N
+() S 8 T () S 16 T () S 24 T ( ) S
+(for) K
+( \() p
+(int) k
+( i=nr;i>pos;--i\)) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (   m[i].assign\(m[i-1].begin\(\),m[i-1].end\(\)\);) N
+() S 8 T () S 16 T () S 24 T ( m[pos].assign\(v.begin\(\),v.end\(\)\);) N
+() S 8 T () S 16 T () S 24 T ( nr++;) N
+() S 8 T () S 16 T () S 24 T ( ) S
+(return) K
+( *this;) p n
+() S 8 T (       }) S 24 T (   ) N
+() S 8 T (       ) S
+(//Elimina una columna en la posicion pos-esima) c n
+() p 8 T (       Matriz<T>& delCol\() S
+(int) k
+( pos\){) p n
+() S 8 T () S 16 T () S 24 T (typename vector <vector<T> >::iterator it; ) N
+() S 8 T () S 16 T () S 24 T () S
+(for) K
+( \(it=m.begin\(\);it!=m.end\(\);++it\){ ) p n
+() S 8 T () S 16 T () S 24 T (  ) S
+(for) K
+( \() p
+(int) k
+( i=pos;i<nc-1;i++\)) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (   \(*it\).at\(i\)=\(*it\).at\(i+1\);) N
+() S 8 T () S 16 T () S 24 T (  \(*it\).pop_back\(\);) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T (  nc--;) N
+() S 8 T () S 16 T () S 24 T (  ) S
+(return) K
+( *this;) p n
+() S 8 T (       }) N
+() S 8 T (       ) S
+(//Elimina una fila en la posicion pos-esima) c n
+() p 8 T (       Matriz<T>& delRow\() S
+(int) k
+( pos\){) p n
+() S 8 T () S 16 T () S 24 T () N
+() S 8 T () S 16 T () S 24 T () S
+(for) K
+( \() p
+(int) k
+( i=pos;i<nr-1;i++\)) p n
+() S 8 T () S 16 T () S 24 T (   m[i]=m[i+1];) N
+() S 8 T () S 16 T () S 24 T (m.pop_back\(\);) N
+() S 8 T () S 16 T () S 24 T (nr--;) N
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( *this;) p n
+(matriz_vector.h) (Page 2/3) (may 12, 15 13:28) title
+border
+grestore
+(Printed by rosa) rhead
+(include/matriz_vector.h) (8/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+%%Page: (3) 9
+%%BeginPageSetup
+/pagesave save def
+sh 0 translate 90 rotate
+%%EndPageSetup
+iso1dict begin
+gsave
+llx lly 12 add translate
+/v 0 store
+/x0 x v get 3.362408 add sx cw mul add store
+/y0 y v get bfs th add sub store
+x0 y0 moveto
+() p 8 T () S 16 T () S 24 T () N
+() S 8 T (       }) N
+() S 8 T (       ) S
+(void) k
+( set\() p
+(int) k
+( r,) p
+(int) k
+( c, ) p
+(const) K
+( T &v\){) p n
+() S 8 T () S 16 T () S 24 T ( assert\(r>=0 && r<nr && c>=0 && c<nc\);) N
+() S 8 T () S 16 T () S 24 T ( m[r][c]=v; ) S
+(//m.at\(r\).at\(c\)=v;) c n
+() p 8 T () S 16 T () S 24 T ( ) N
+() S 8 T (       }) N
+() S 8 T (       ) S
+(const) K
+( T& get\() p
+(int) k
+( r,) p
+(int) k
+( c\)) p
+(const) K
+({) p n
+() S 8 T () S 16 T () S 24 T (  assert\(r>=0 && r<nr && c>=0 && c<nc\);) N
+() S 8 T () S 16 T () S 24 T (  ) S
+(return) K
+( m[r][c];) p n
+() S 8 T (       }) N
+() S 8 T (       T& get\() S
+(int) k
+( r,) p
+(int) k
+( c\){) p n
+() S 8 T () S 16 T () S 24 T (  assert\(r>=0 && r<nr && c>=0 && c<nc\);) N
+() S 8 T () S 16 T () S 24 T (  ) S
+(return) K
+( m[r][c];) p n
+() S 8 T (       }) N
+() S 8 T (      vector<T> & operator[]\() S
+(int) k
+( r\){) p n
+() S 8 T () S 16 T () S 24 T (    assert\(r>=0 && r<nr\);) N
+() S 8 T () S 16 T () S 24 T (    ) S
+(return) K
+( m[r];) p n
+() S 8 T (       }) S 24 T (    ) N
+() S 8 T (        ) S
+(const) K
+( vector<T> & operator[]\() p
+(int) k
+( r\)) p
+(const) K
+( {) p n
+() S 8 T () S 16 T () S 24 T (    assert\(r>=0 && r<nr\);) N
+() S 8 T () S 16 T () S 24 T (    ) S
+(return) K
+( m[r];) p n
+() S 8 T (       }) N
+() S 8 T (      ) S
+(//Intercambio de dos matrices) c n
+() p 8 T (      ) S
+(void) k
+( swap\(Matriz<T> & M\){) p n
+() S 8 T () S 16 T () S 24 T (m.swap\(M.m\);) N
+() S 8 T () S 16 T () S 24 T (std::swap\(nr,M.nr\);) N
+() S 8 T () S 16 T () S 24 T (std::swap\(nc,M.nc\);) N
+() S 8 T (      }) N
+() S 8 T (      friend ostream & operator<<\(ostream & os, ) S
+(const) K
+( Matriz<T> &M\){) p n
+() S 8 T () S 16 T () S 24 T () S
+(for) K
+( \() p
+(int) k
+( i=0;i<M.nr;i++\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (  os<<") S
+(\\n) str
+(";) p n
+() S 8 T () S 16 T () S 24 T (          ) S
+(for) K
+( \() p
+(int) k
+( j=0;j<M.nc;j++\)) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (    os<<M.m[i][j]<<") S
+( ) str
+(";) p n
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( os;) p n
+() S 8 T (      }) N
+() S 8 T (      friend istream & operator>>\(istream & is,  Matriz<T> &M\){) N
+() S 8 T () S 16 T () S 24 T () N
+() S 8 T () S 16 T () S 24 T () S
+(int) k
+( nr,nc;) p n
+() S 8 T () S 16 T () S 24 T (is>>nr>>nc;) N
+() S 8 T () S 16 T () S 24 T (Matriz<T>Maux\(nr,nc\);) N
+() S 8 T () S 16 T () S 24 T () S
+(for) K
+( \() p
+(int) k
+( i=0;i<nr;i++\){) p n
+() S 8 T () S 16 T () S 24 T () S 32 T (  ) N
+() S 8 T () S 16 T () S 24 T (          ) S
+(for) K
+( \() p
+(int) k
+( j=0;j<nc;j++\)) p n
+() S 8 T () S 16 T () S 24 T () S 32 T () S 40 T (    is>>Maux.m[i][j];) N
+() S 8 T () S 16 T () S 24 T (}) N
+() S 8 T () S 16 T () S 24 T (M=Maux;) N
+() S 8 T () S 16 T () S 24 T () S
+(return) K
+( is;) p n
+() S 8 T (      }) N
+(};) N
+(#endif) K
+(matriz_vector.h) (Page 3/3) (may 12, 15 13:28) title
+border
+grestore
+(Printed by rosa) rhead
+(include/matriz_vector.h) (9/9) (mi\303\251rcoles mayo 13, 2015) footer
+end % of iso1dict
+pagesave restore
+showpage
+
+%%Trailer
+end
+%%EOF
